@@ -131,7 +131,7 @@ class Fifteen {
     }
 
     clickSquare(event) {
-        // Do move the squares if it's shuffling
+        // Do not move the squares if it's shuffling
         if (this.isShuffling) {
             return;
         }
@@ -150,7 +150,7 @@ class Fifteen {
     }
 
     clickArrow(event) {
-        // Do move the squares if it's shuffling
+        // Do not move the squares if it's shuffling
         if (this.isShuffling) {
             return;
         }
