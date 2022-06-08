@@ -248,7 +248,7 @@ class Fifteen {
         }
         if (this.squares[x][y] === undefined) {
             if (throwNotFoundException) {
-                throw new Error(`Invalid row column: ${y}`);
+                throw new Error(`Invalid column number: ${y}`);
             } else {
                 return;
             }
