@@ -1,0 +1,1 @@
+new Fifteen('__game', 4);

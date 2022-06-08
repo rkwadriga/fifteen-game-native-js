@@ -1,0 +1,82 @@
+body,
+html {
+    font: 16px/1.4 Georgia, serif;
+}
+
+.__fifteen_game_main-title {
+    font: 2rem/1.2 Georgia, serif;
+    margin-bottom: 1em;
+}
+
+.__fifteen_game_hidden {
+    display: none;
+}
+
+.__fifteen_game_page {
+    max-width: 500px;
+    padding: 2rem;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.__fifteen_game_game {
+    width: 100%;
+    padding-bottom: 100%;
+    background: #E0D0F5;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    user-select: none;
+}
+.__fifteen_game_square {
+    outline: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: black;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    box-shadow: inset 1px 1px #e5d6f6;
+    transition: transform 0.2s;
+}
+.__fifteen_game_square-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 84%;
+    height: 84%;
+    margin: 8%;
+    box-shadow: inset 0 0 0 2px #6E209A;
+}
+.__fifteen_game_game_won .__fifteen_game_square-value {
+    filter: brightness(200%);
+}
+
+.__fifteen_game_stats-record {
+    margin: 1rem 10%;
+    width: 80%;
+    background: #E0D0F5;
+    color: black;
+    font: 1.2rem/1.4 Georgia, serif;
+}
+.__fifteen_game_stats-record .__fifteen_game_updated {
+    font-weight: 900%;
+    color: #ee082e;
+}
+
+.__fifteen_game_button {
+    color: white;
+    background: black;
+    font: 1.2rem/1.4 Georgia, serif;
+    border: none;
+    cursor: pointer;
+    padding: 0.5em 1.5em;
+    transition: background 0.3s;
+}
+.__fifteen_game_button:hover {
+    background: #6E209A;
+}
