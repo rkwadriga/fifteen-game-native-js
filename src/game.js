@@ -374,13 +374,13 @@ class Fifteen {
     incrementControlSum(x, y) {
         const movedItemValue = this.squares[x][y].value;
 
-        // If moved square value was correct before move that means that not it's incorrect and control sum is changed
+        // If moved square position was correct before move that means that it's now incorrect and control sum is changed
         if (movedItemValue === this.correctValues[this.emptySquare.x][this.emptySquare.y]) {
             this.controlSum--;
             return;
         }
 
-        // If the square had incorrect value before move and now it has the correct one - control sum must be changed
+        // If the square had incorrect position before move and now it has the correct one - control sum must be changed
         if (movedItemValue === this.correctValues[x][y]) {
             this.controlSum++;
         }
