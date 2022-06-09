@@ -1,1 +1,1 @@
-new Fifteen('__game', 4);
+new Fifteen('__game');

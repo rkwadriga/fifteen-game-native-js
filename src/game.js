@@ -1,5 +1,5 @@
 class Fifteen {
-    constructor(containerID, gameSize = 4, complicity = 20) {
+    constructor(containerID, gameSize = 4, complicity = 50) {
         if (gameSize <= 0) {
             throw new Error(`Invalid game size: ${gameSize}`);
         }
@@ -11,10 +11,10 @@ class Fifteen {
         this.wonClass = this.classPrefix + 'game_won';
         this.updatedValueClass = this.classPrefix + 'updated';
         this.hiddenClass = this.classPrefix + 'hidden';
-        this.prsonalRecordStorageKey = `__fifteen_name_record_${gameSize}`;
+        this.prsonalRecordStorageKey = `__fifteen_name_record_${gameSize}_${complicity}`;
         this.size = gameSize;
         this.complicity = complicity;
-        this.squares = [];
+        this.squares = generateMatrix(this.size);
         this.gameNode = null;
         this.emptySquare = null;
         this.personalRecordNode = null;
@@ -27,6 +27,9 @@ class Fifteen {
         this.isMove = false;
         this.isStarted = false;
         this.isShuffling = false;
+        this.correctValues = generateMatrix(this.size);
+        this.wonSum = Math.pow(this.size, 2);
+        this.controlSum = this.wonSum;
 
         this.clickSquare = this.clickSquare.bind(this);
         this.clickArrow = this.clickArrow.bind(this);
@@ -34,7 +37,6 @@ class Fifteen {
         this.clickResetPersonalRecordButton = this.clickResetPersonalRecordButton.bind(this);
 
         this.manageHTML();
-        this.setSquaresPositions();
         this.setEventHandlers();
         this.setPersonalRecord(Number(localStorage.getItem(this.prsonalRecordStorageKey)), false);
     }
@@ -64,9 +66,6 @@ class Fifteen {
         let value = 0;
         for (let y = 0; y < this.size; y++) {
             for (let x = 0; x < this.size; x++) {
-                if (this.squares[x] === undefined) {
-                    this.squares[x] = [];
-                }
                 const squareNode = createElement('button', this.classPrefix + 'square');
                 squareNode.appendChild(createElement('span', this.classPrefix + 'square-value', ++value));
                 squareNode.dataset.x = String(x);
@@ -80,8 +79,10 @@ class Fifteen {
                     y,
                     node: squareNode
                 };
+                this.setSquarePosition(this.emptySquare, x, y);
 
                 this.squares[x][y] = this.emptySquare;
+                this.correctValues[x][y] = value;
                 this.gameNode.appendChild(squareNode);
             }
         }
@@ -101,14 +102,6 @@ class Fifteen {
 
         // Hide the last square
         this.emptySquare.node.classList.add(this.hiddenClass);
-    }
-
-    setSquaresPositions() {
-        for (let y = 0; y < this.size; y++) {
-            for (let x = 0; x < this.size; x++) {
-                this.setSquarePosition(this.squares[x][y], x, y);
-            }
-        }
     }
 
     setSquarePosition(square, x, y) {
@@ -224,10 +217,8 @@ class Fifteen {
     shuffleSquares() {
         // Create variable for the last move (to not repeat the moves)
         this.lastMove = null;
-        // Make the 300 random moves
+        // Make the random moves
         for (let i = 0; i < this.complicity; i++) {
-            // Make a random move
-            //this.randomMove();
             setTimeout(() => {
                 this.randomMove();
                 if (i === this.complicity - 1) {
@@ -279,6 +270,9 @@ class Fifteen {
         this.squares[x][y] = this.emptySquare;
         this.squares[newX][newY] = movedSquare;
 
+        // Increment the control sum
+        this.incrementControlSum(newX, newY);
+
         // If this is shuffling move - do not calculate the steps and do not check the game finish
         if (!this.isMove) {
             return;
@@ -309,10 +303,15 @@ class Fifteen {
         this.personalRecord = record;
         this.personalRecordNode.innerText = record;
         if (isNew) {
-            localStorage.setItem(this.prsonalRecordStorageKey, String(record));
-            this.personalRecordNode.classList.add(this.updatedValueClass);
+            if (record <= 0) {
+                localStorage.removeItem(this.prsonalRecordStorageKey)
+                this.personalRecordNode.classList.remove(this.updatedValueClass);
+            } else {
+                localStorage.setItem(this.prsonalRecordStorageKey, String(record));
+                this.personalRecordNode.classList.add(this.updatedValueClass);
+            }
         }
-        if (record === 0) {
+        if (record <= 0) {
             this.personalRecordNode.parentNode.classList.add(this.hiddenClass);
             this.personalRecordResetBtnNode.classList.add(this.hiddenClass);
         } else {
@@ -372,16 +371,23 @@ class Fifteen {
         this.moveSquare(x, y, false);
     }
 
-    checkIsWon() {
-        let lastValue = 1;
-        for (let y = 0; y < this.size; y++) {
-            for (let x = 0; x < this.size; x++) {
-                if (this.squares[x][y].value !== lastValue++) {
-                    return false;
-                }
-            }
+    incrementControlSum(x, y) {
+        const movedItemValue = this.squares[x][y].value;
+
+        // If moved square value was correct before move that means that not it's incorrect and control sum is changed
+        if (movedItemValue === this.correctValues[this.emptySquare.x][this.emptySquare.y]) {
+            this.controlSum--;
+            return;
         }
-        return true;
+
+        // If the square had incorrect value before move and now it has the correct one - control sum must be changed
+        if (movedItemValue === this.correctValues[x][y]) {
+            this.controlSum++;
+        }
+    }
+
+    checkIsWon() {
+        return this.controlSum === this.wonSum;
     }
 
     won() {
@@ -416,9 +422,10 @@ function createElement(type, className, content = '') {
     return element;
 }
 
-function wrapElementByDiv(element, className) {
-    const wrapperNode = createElement('div', className);
-    element.parentNode.insertBefore(wrapperNode, element);
-    wrapperNode.appendChild(element);
-    return wrapperNode;
+function generateMatrix(size, fillVal = undefined, depth = 0) {
+    let arr = [];
+    for (let i = 0; i < size; i++) {
+        arr.push(depth === 0 ? generateMatrix(size, fillVal, 1) : fillVal);
+    }
+    return arr;
 }
