@@ -282,10 +282,9 @@ class Fifteen {
         for (let i = 0; i < this.complicity; i++) {
             setTimeout(() => {
                 this.randomMove();
+                // If this is is the last move - disable the shuffling and start the game
                 if (i === this.complicity - 1) {
-                    // Disable the shuffling
                     this.isShuffling = false;
-                    // Start the game
                     this.isStarted = true;
                 }
             }, i * 100);
@@ -293,12 +292,10 @@ class Fifteen {
     }
 
     startTimer() {
-        if (this.timer === null) {
-            this.startTime = (new Date()).valueOf();
-            this.timer = setInterval(() => {
-                this.setTime();
-            }, 100);
-        }
+        this.startTime = (new Date()).valueOf();
+        this.timer = setInterval(() => {
+            this.setTime();
+        }, 100);
     }
 
     stopTimer() {
@@ -359,7 +356,9 @@ class Fifteen {
         }
 
         // Start the timer if ti's not
-        this.startTimer();
+        if (this.timer === null) {
+            this.startTimer();
+        }
 
         // Increment Moves count
         this.setMovesCount();
