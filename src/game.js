@@ -385,10 +385,10 @@ class Fifteen {
         } else {
             if (isNew) {
                 localStorage.setItem(this.prsonalRecordStorageKey, JSON.stringify(this.personalRecord));
-                if (oldRecord.moves > this.personalRecord.moves) {
+                if (oldRecord.moves === 0 || oldRecord.moves > this.personalRecord.moves) {
                     this.bestMovesCountNode.classList.add(this.updatedValueClass);
                 }
-                if (oldRecord.time > this.personalRecord.time) {
+                if (oldRecord.time === 0 || oldRecord.time > this.personalRecord.time) {
                     this.bestTimeNode.classList.add(this.updatedValueClass);
                 }
             }
