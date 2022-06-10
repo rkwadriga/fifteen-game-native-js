@@ -264,13 +264,12 @@ class Fifteen {
     }
 
     startTimer() {
-        if (this.timer !== null) {
-            return;
+        if (this.timer === null) {
+            this.startTime = (new Date()).valueOf();
+            this.timer = setInterval(() => {
+                this.setTime();
+            }, 100);
         }
-        this.startTime = (new Date()).valueOf();
-        this.timer = setInterval(() => {
-            this.setTime();
-        }, 100);
     }
 
     stopTimer() {
