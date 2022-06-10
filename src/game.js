@@ -28,9 +28,8 @@ class Fifteen {
         this.movesCount = 0;
         this.time = 0;
         this.eventListeners = [];
-        this.isMove = false;
-        this.isStarted = false;
         this.isShuffling = false;
+        this.isStarted = false;
         this.correctValues = generateMatrix(this.size);
         this.wonSum = Math.pow(this.size, 2);
         this.controlSum = this.wonSum;
@@ -198,7 +197,6 @@ class Fifteen {
         }
 
         // Move the square
-        this.isMove = true;
         this.moveSquare(Number(square.dataset.x), Number(square.dataset.y));
     }
 
@@ -233,7 +231,6 @@ class Fifteen {
         }
 
         // Try to move the square
-        this.isMove = this;
         this.moveSquare(newX, newY, false);
     }
 
@@ -242,18 +239,14 @@ class Fifteen {
         if (this.isShuffling) {
             return;
         }
-
-        // Set "isMove" flag to false to disable game finishing checking
-        this.isMove = false;
-
-        // Block any user actions on shuffling
         this.isShuffling = true;
+
+        // Stop the game process to block any user actions on shuffling
+        this.isStarted = false;
 
         // Shuffle squares
         this.shuffleSquares();
 
-        // After the shuffle game can be started
-        this.isStarted = true;
         // Remove all "updated" classes from page
         this.gameNode.classList.remove(this.wonClass);
         this.stepsCountNode.classList.remove(this.updatedValueClass);
@@ -290,8 +283,10 @@ class Fifteen {
             setTimeout(() => {
                 this.randomMove();
                 if (i === this.complicity - 1) {
-                    // Disable shuffling
+                    // Disable the shuffling
                     this.isShuffling = false;
+                    // Start the game
+                    this.isStarted = true;
                 }
             }, i * 100);
         }
@@ -358,8 +353,8 @@ class Fifteen {
         // Increment the control sum
         this.incrementControlSum(newX, newY);
 
-        // If this is shuffling move - do not calculate the steps and do not check the game finish
-        if (!this.isMove) {
+        // If this is shuffling move or move before shuffling - do not calculate the steps and do not check the game finish
+        if (!this.isStarted) {
             return;
         }
 
