@@ -1,5 +1,5 @@
 class Fifteen {
-    constructor(containerID, gameSize = 4, complicity = 50) {
+    constructor(containerID, gameSize = 4, complicity = 100) {
         if (gameSize <= 0) {
             throw new Error(`Invalid game size: ${gameSize}`);
         }
@@ -259,7 +259,7 @@ class Fifteen {
                     // Disable shuffling
                     this.isShuffling = false;
                 }
-            }, i * 200);
+            }, i * 100);
         }
     }
 
