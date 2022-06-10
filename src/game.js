@@ -18,11 +18,14 @@ class Fifteen {
         this.gameNode = null;
         this.emptySquare = null;
         this.personalRecordNode = null;
+        this.bestMovesCountNode = null;
+        this.bestTimeNode = null;
         this.personalRecordResetBtnNode = null;
         this.stepsCountNode = null;
+        this.timeNode = null;
         this.shuffleBtnNode = null;
-        this.personalRecord = 0;
-        this.stepsCount = 0;
+        this.movesCount = 0;
+        this.time = 0;
         this.eventListeners = [];
         this.isMove = false;
         this.isStarted = false;
@@ -30,6 +33,12 @@ class Fifteen {
         this.correctValues = generateMatrix(this.size);
         this.wonSum = Math.pow(this.size, 2);
         this.controlSum = this.wonSum;
+        this.startTime = null;
+        this.timer = null;
+        this.personalRecord = {
+            moves: 0,
+            time: 0
+        }
 
         this.clickSquare = this.clickSquare.bind(this);
         this.clickArrow = this.clickArrow.bind(this);
@@ -38,7 +47,7 @@ class Fifteen {
 
         this.manageHTML();
         this.setEventHandlers();
-        this.setPersonalRecord(Number(localStorage.getItem(this.prsonalRecordStorageKey)), false);
+        this.setPersonalRecord(localStorage.getItem(this.prsonalRecordStorageKey), false);
     }
 
     // <!--- HTML modifications -->
@@ -50,15 +59,25 @@ class Fifteen {
         // Add "h1" title with game name
         mainContainer.appendChild(createElement('h1', this.classPrefix + 'main-title', 'Fifteen Game'));
 
-        // Add "Personal record" block to page
-        this.personalRecordNode = createElement('span', this.classPrefix + 'stats-record-value', this.personalRecord);
-        const personalRecordBlock = createElement('p', this.classPrefix + 'stats-record', 'Personal record:&nbsp;');
-        personalRecordBlock.appendChild(this.personalRecordNode);
-        mainContainer.appendChild(personalRecordBlock);
+        // Add "Personal record" block
+        this.personalRecordNode = createElement('div', this.classPrefix + 'personal-record');
+
+        // Add "Best moves count" block to page
+        this.bestMovesCountNode = createElement('span', this.classPrefix + 'stats-record-value', this.personalRecord.moves);
+        const bestMovesBlock = createElement('p', this.classPrefix + 'stats-record', 'Best moves count:&nbsp;');
+        bestMovesBlock.appendChild(this.bestMovesCountNode);
+        this.personalRecordNode.appendChild(bestMovesBlock);
+
+        // Add "Best time" block to page
+        this.bestTimeNode = createElement('span', this.classPrefix + 'stats-record-value', this.personalRecord.time);
+        const bestTimeBlock = createElement('p', this.classPrefix + 'stats-record', 'Best time:&nbsp;');
+        bestTimeBlock.appendChild(this.bestTimeNode);
+        this.personalRecordNode.appendChild(bestTimeBlock);
 
         // Add "reset personal record" button to page
         this.personalRecordResetBtnNode = createElement('button', this.classPrefix + 'button', 'Reset personal record');
-        mainContainer.appendChild(this.personalRecordResetBtnNode);
+        this.personalRecordNode.appendChild(this.personalRecordResetBtnNode);
+        mainContainer.appendChild(this.personalRecordNode);
 
         // Create game container and add squares items
         const squareSize = (100 / this.size) + '%';
@@ -90,15 +109,25 @@ class Fifteen {
         // Add game container to page
         mainContainer.appendChild(this.gameNode);
 
+        // Add "game process" block to page
+        const gameProcessBlock = createElement('div', this.classPrefix + 'game-process');
+
         // Add "steps count" block to page
-        this.stepsCountNode = createElement('span', this.classPrefix + 'stats-record-value', this.stepsCount);
-        const pageCountBlock = createElement('p', this.classPrefix + 'stats-record', 'Steps count:&nbsp;');
-        pageCountBlock.appendChild(this.stepsCountNode);
-        mainContainer.appendChild(pageCountBlock);
+        this.stepsCountNode = createElement('span', this.classPrefix + 'stats-record-value', this.movesCount);
+        const movesCountBlock = createElement('p', this.classPrefix + 'stats-record', 'Steps count:&nbsp;');
+        movesCountBlock.appendChild(this.stepsCountNode);
+        gameProcessBlock.appendChild(movesCountBlock);
+
+        // Add "time" block to page
+        this.timeNode = createElement('span', this.classPrefix + 'stats-record-value', '00:00:00');
+        const timeBlock = createElement('p', this.classPrefix + 'stats-record', 'Time:&nbsp;');
+        timeBlock.appendChild(this.timeNode);
+        gameProcessBlock.appendChild(timeBlock);
 
         // Add "shuffle" button to page
         this.shuffleBtnNode = createElement('button', this.classPrefix + 'button', 'Shuffle');
-        mainContainer.appendChild(this.shuffleBtnNode);
+        gameProcessBlock.appendChild(this.shuffleBtnNode);
+        mainContainer.appendChild(gameProcessBlock);
 
         // Hide the last square
         this.emptySquare.node.classList.add(this.hiddenClass);
@@ -194,17 +223,22 @@ class Fifteen {
 
         // After the shuffle game can be started
         this.isStarted = true;
-        // Remove all "game-finished" classes from page
+        // Remove all "updated" classes from page
         this.gameNode.classList.remove(this.wonClass);
         this.stepsCountNode.classList.remove(this.updatedValueClass);
-        this.personalRecordNode.classList.remove(this.updatedValueClass);
+        this.timeNode.classList.remove(this.updatedValueClass);
+        this.bestMovesCountNode.classList.remove(this.updatedValueClass);
+        this.bestTimeNode.classList.remove(this.updatedValueClass);
         // Refresh the steps count
         this.setStepsCount(0);
+        // Stop the timer
+        this.stopTimer();
+        this.setTime(0);
     }
 
     clickResetPersonalRecordButton() {
         if (confirm('Are you sure you want to rest your personal record?')) {
-            this.setPersonalRecord(0);
+            this.setPersonalRecord({moves: 0, time: 0});
         }
     }
 
@@ -222,9 +256,25 @@ class Fifteen {
             setTimeout(() => {
                 this.randomMove();
                 if (i === this.complicity - 1) {
+                    // Disable shuffling
                     this.isShuffling = false;
+                    // Start the timer
+                    this.startTimer();
                 }
             }, i * 200);
+        }
+    }
+
+    startTimer() {
+        this.startTime = (new Date()).valueOf();
+        this.timer = setInterval(() => {
+            this.setTime();
+        }, 100);
+    }
+
+    stopTimer() {
+        if (this.timer !== null) {
+            clearInterval(this.timer);
         }
     }
 
@@ -293,30 +343,49 @@ class Fifteen {
             return;
         }
         if (count === null) {
-            count = this.stepsCount + 1;
+            count = this.movesCount + 1;
         }
-        this.stepsCount = count;
-        this.stepsCountNode.innerText = this.stepsCount;
+        this.movesCount = count;
+        this.stepsCountNode.innerText = this.movesCount;
+    }
+
+    setTime(time = null) {
+        if (time === 0) {
+            time = '00:00:00';
+        } else {
+            if (this.startTime === null) {
+                this.startTime = (new Date()).valueOf();
+            }
+            time = getTimeSpend(this.startTime);
+        }
+        this.time = time;
+        this.timeNode.innerText = this.time;
     }
 
     setPersonalRecord(record, isNew = true) {
-        this.personalRecord = record;
-        this.personalRecordNode.innerText = record;
-        if (isNew) {
-            if (record <= 0) {
-                localStorage.removeItem(this.prsonalRecordStorageKey)
-                this.personalRecordNode.classList.remove(this.updatedValueClass);
-            } else {
-                localStorage.setItem(this.prsonalRecordStorageKey, String(record));
-                this.personalRecordNode.classList.add(this.updatedValueClass);
-            }
+        if (typeof record === 'string') {
+            record = JSON.parse(record);
         }
-        if (record <= 0) {
-            this.personalRecordNode.parentNode.classList.add(this.hiddenClass);
-            this.personalRecordResetBtnNode.classList.add(this.hiddenClass);
+        if (record !== null) {
+            this.personalRecord = record;
+        }
+        this.bestMovesCountNode.classList.remove(this.updatedValueClass);
+        this.bestTimeNode.classList.remove(this.updatedValueClass);
+
+        if (this.personalRecord.moves === 0 && this.personalRecord.time === 0) {
+            if (isNew) {
+                localStorage.removeItem(this.prsonalRecordStorageKey);
+            }
+            this.personalRecordNode.classList.add(this.hiddenClass);
         } else {
-            this.personalRecordNode.parentNode.classList.remove(this.hiddenClass);
-            this.personalRecordResetBtnNode.classList.remove(this.hiddenClass);
+            if (isNew) {
+                localStorage.setItem(this.prsonalRecordStorageKey, JSON.stringify(this.personalRecord));
+                this.bestMovesCountNode.classList.add(this.updatedValueClass);
+                this.bestTimeNode.classList.add(this.updatedValueClass);
+            }
+            this.bestMovesCountNode.innerText = this.personalRecord.moves;
+            this.bestTimeNode.innerText = this.personalRecord.time;
+            this.personalRecordNode.classList.remove(this.hiddenClass);
         }
     }
 
@@ -395,13 +464,20 @@ class Fifteen {
         if (!this.isStarted) {
             return;
         }
+        // Stop the timer
+        this.stopTimer();
         // Make a new game impossible before the new shuffle
         this.isStarted = false;
         this.gameNode.classList.add(this.wonClass);
-        this.stepsCountNode.classList.add(this.updatedValueClass);
-        if (this.personalRecord === 0 || this.stepsCount < this.personalRecord) {
-            this.setPersonalRecord(this.stepsCount);
+        if (this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves || this.time < this.personalRecord.time) {
+            this.setPersonalRecord({
+                moves: this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves ? this.movesCount : this.personalRecord.moves,
+                time: this.personalRecord.time === 0 || this.time < this.personalRecord.time ? this.time : this.personalRecord.time
+            }, true);
         }
+        // Add "updated" class to "moves count" and "time" blocks
+        this.stepsCountNode.classList.add(this.updatedValueClass);
+        this.timeNode.classList.add(this.updatedValueClass);
     }
     // <!--- /Game process --->
 
@@ -428,4 +504,48 @@ function generateMatrix(size, fillVal = undefined, depth = 0) {
         arr.push(depth === 0 ? generateMatrix(size, fillVal, 1) : fillVal);
     }
     return arr;
+}
+
+function getTimeSpend(startTime) {
+    const timeDiff = (new Date()).valueOf() - startTime;
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+    let milliseconds = Math.floor(timeDiff / 10);
+    if (milliseconds < 100) {
+        return formatTime(hours, minutes, seconds, milliseconds);
+    }
+
+    seconds = Math.floor(timeDiff / 1000);
+    milliseconds -= seconds * 100;
+    if (seconds < 60) {
+        return formatTime(hours, minutes, seconds, milliseconds);
+    }
+
+    minutes = Math.floor(timeDiff / 60000);
+    seconds -= minutes * 60;
+    if (minutes < 60) {
+        return formatTime(hours, minutes, seconds, milliseconds);
+    }
+
+    hours = Math.floor(timeDiff / 3600000);
+    minutes -= hours * 60;
+
+    return formatTime(hours, minutes, seconds, milliseconds);
+}
+
+function formatTime(hours, minutes, seconds, milliseconds) {
+    const numberToString = (num) => {
+        let str = String(num);
+        if (str.length === 2) {
+            return str;
+        }
+        if (str.length < 2) {
+            return '0' + str;
+        }
+        return str.substring(0, 2);
+    };
+
+    const minutesStr = [numberToString(minutes), numberToString(seconds), numberToString(milliseconds)].join(':');
+    return hours === 0 ? minutesStr : numberToString(hours) + ':' + minutesStr;
 }
