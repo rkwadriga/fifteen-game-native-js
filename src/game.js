@@ -112,9 +112,9 @@ class Fifteen {
         // Add "game process" block to page
         const gameProcessBlock = createElement('div', this.classPrefix + 'game-process');
 
-        // Add "steps count" block to page
+        // Add "Moves count" block to page
         this.stepsCountNode = createElement('span', this.classPrefix + 'stats-record-value', this.movesCount);
-        const movesCountBlock = createElement('p', this.classPrefix + 'stats-record', 'Steps count:&nbsp;');
+        const movesCountBlock = createElement('p', this.classPrefix + 'stats-record', 'Moves count:&nbsp;');
         movesCountBlock.appendChild(this.stepsCountNode);
         gameProcessBlock.appendChild(movesCountBlock);
 
@@ -229,8 +229,8 @@ class Fifteen {
         this.timeNode.classList.remove(this.updatedValueClass);
         this.bestMovesCountNode.classList.remove(this.updatedValueClass);
         this.bestTimeNode.classList.remove(this.updatedValueClass);
-        // Refresh the steps count
-        this.setStepsCount(0);
+        // Refresh the Moves count
+        this.setMovesCount(0);
         // Stop the timer
         this.stopTimer();
         this.setTime(0);
@@ -332,8 +332,8 @@ class Fifteen {
         // Start the timer if ti's not
         this.startTimer();
 
-        // Increment steps count
-        this.setStepsCount();
+        // Increment Moves count
+        this.setMovesCount();
 
         // If this is the user's move - check if the game is over
         if (this.checkIsWon()) {
@@ -341,8 +341,8 @@ class Fifteen {
         }
     }
 
-    setStepsCount(count = null) {
-        // Do not calculate the steps count before the squares was shuffled
+    setMovesCount(count = null) {
+        // Do not calculate the Moves count before the squares was shuffled
         if (!this.isStarted) {
             return;
         }
