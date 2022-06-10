@@ -517,14 +517,14 @@ class Fifteen {
         let [movesUpgraded, timeUpgraded] = [0, 0];
         if (this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves || this.time < this.personalRecord.time) {
             const record = this.personalRecord;
-            if (this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves) {
-                if (this.personalRecord.moves !== 0) {
+            if (record.moves === 0 || this.movesCount < record.moves) {
+                if (record.moves !== 0) {
                     movesUpgraded = getPercents(record.moves - this.movesCount, record.moves);
                 }
                 record.moves = this.movesCount;
             }
-            if (this.personalRecord.time === 0 || this.time < this.personalRecord.time) {
-                if (this.personalRecord.time !== 0) {
+            if (record.time === 0 || this.time < record.time) {
+                if (record.time !== 0) {
                     const [oldTime, newTime] = [parseTimeString(record.time), parseTimeString(this.time)];
                     timeUpgraded = getPercents(oldTime - newTime, oldTime);
                 }
