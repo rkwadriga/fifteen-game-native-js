@@ -519,13 +519,14 @@ class Fifteen {
             const record = this.personalRecord;
             if (this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves) {
                 if (this.personalRecord.moves !== 0) {
-                    movesUpgraded = getPercents(record.moves, this.movesCount);
+                    movesUpgraded = getPercents(record.moves - this.movesCount, record.moves);
                 }
                 record.moves = this.movesCount;
             }
             if (this.personalRecord.time === 0 || this.time < this.personalRecord.time) {
                 if (this.personalRecord.time !== 0) {
-                    timeUpgraded = getPercents(parseTimeString(record.time), parseTimeString(this.time));
+                    const [oldTime, newTime] = [parseTimeString(record.time), parseTimeString(this.time)];
+                    timeUpgraded = getPercents(oldTime - newTime, oldTime);
                 }
                 record.time = this.time;
             }
