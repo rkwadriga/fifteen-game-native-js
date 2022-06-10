@@ -364,7 +364,7 @@ class Fifteen {
         this.setMovesCount();
 
         // If this is the user's move - check if the game is over
-        if (this.checkIsWon()) {
+        if (this.isWon()) {
             this.won();
         }
     }
@@ -492,7 +492,7 @@ class Fifteen {
         }
     }
 
-    checkIsWon() {
+    isWon() {
         return this.controlSum === this.wonSum;
     }
 
