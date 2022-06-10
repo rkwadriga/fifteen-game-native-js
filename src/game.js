@@ -258,14 +258,15 @@ class Fifteen {
                 if (i === this.complicity - 1) {
                     // Disable shuffling
                     this.isShuffling = false;
-                    // Start the timer
-                    this.startTimer();
                 }
             }, i * 200);
         }
     }
 
     startTimer() {
+        if (this.timer !== null) {
+            return;
+        }
         this.startTime = (new Date()).valueOf();
         this.timer = setInterval(() => {
             this.setTime();
@@ -276,6 +277,7 @@ class Fifteen {
         if (this.timer !== null) {
             clearInterval(this.timer);
         }
+        this.timer = null;
     }
 
     moveSquare(x, y, throwNotFoundException = true) {
@@ -327,6 +329,9 @@ class Fifteen {
         if (!this.isMove) {
             return;
         }
+
+        // Start the timer if ti's not
+        this.startTimer();
 
         // Increment steps count
         this.setStepsCount();
