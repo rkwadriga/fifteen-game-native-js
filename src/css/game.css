@@ -2,14 +2,27 @@ body,
 html {
     font: 16px/1.4 Georgia, serif;
 }
+.__fifteen_game_hidden {
+    display: none;
+}
 
 .__fifteen_game_main-title {
     font: 2rem/1.2 Georgia, serif;
     margin-bottom: 1em;
 }
 
-.__fifteen_game_hidden {
-    display: none;
+.__fifteen_game_congratulations {
+    margin-bottom: 2em;
+}
+
+.__fifteen_game_congratulations-title {
+    font: 1.5rem/1.1 Georgia, serif;
+    color: #ee082e;
+    filter: brightness(200%);
+}
+
+.__fifteen_game_record-improved {
+    font: 1.1rem/1.1 Georgia, serif;
 }
 
 .__fifteen_game_page {

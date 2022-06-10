@@ -15,8 +15,9 @@ class Fifteen {
         this.size = gameSize;
         this.complicity = complicity;
         this.squares = generateMatrix(this.size);
-        this.gameNode = null;
         this.emptySquare = null;
+        this.gameNode = null;
+        this.congratulationsNode = null;
         this.personalRecordNode = null;
         this.bestMovesCountNode = null;
         this.bestTimeNode = null;
@@ -61,6 +62,11 @@ class Fifteen {
 
         // Add "Personal record" block
         this.personalRecordNode = createElement('div', this.classPrefix + 'personal-record');
+
+        // Add "Congratulations" block
+        this.congratulationsNode = createElement('p', this.classPrefix + 'congratulations');
+        this.congratulationsNode.classList.add(this.hiddenClass);
+        this.personalRecordNode.appendChild(this.congratulationsNode);
 
         // Add "Best moves count" block to page
         this.bestMovesCountNode = createElement('span', this.classPrefix + 'stats-record-value', this.personalRecord.moves);
@@ -136,6 +142,31 @@ class Fifteen {
     setSquarePosition(square, x, y) {
         const shift = 100;
         square.node.style.transform = `translate3D(${x * shift}%, ${y * shift}%, 0)`;
+    }
+
+    addCongratulationsBlock(movesUpgraded, timeUpgraded) {
+        // Create "congratulations" content block
+        const congratulationsContentBlock = createElement('div', this.classPrefix + 'congratulations-block-content');
+        congratulationsContentBlock.appendChild(
+            createElement('h4', this.classPrefix + 'congratulations-title', 'Congratulations, you won!')
+        );
+
+        // Add statistics elements
+        let movesCountText = 'Moves: ' + this.movesCount;
+        if (movesUpgraded > 0) {
+            movesCountText += ` (+${movesUpgraded}%)`
+        }
+        let timeText = 'Time: ' + this.time;
+        if (timeUpgraded > 0) {
+            timeText += ` (+${timeUpgraded}%)`
+        }
+        congratulationsContentBlock.appendChild(createElement('p', this.classPrefix + 'record-improved', movesCountText));
+        congratulationsContentBlock.appendChild(createElement('p', this.classPrefix + 'record-improved', timeText));
+
+        // Clear block content adn add the "congratulations" content
+        this.congratulationsNode.innerHTML = '';
+        this.congratulationsNode.appendChild(congratulationsContentBlock);
+        this.congratulationsNode.classList.remove(this.hiddenClass);
     }
     // <!--- /HTML modifications -->
 
@@ -234,6 +265,9 @@ class Fifteen {
         // Stop the timer
         this.stopTimer();
         this.setTime(0);
+
+        // Hide the congratulations block
+        this.congratulationsNode.classList.add(this.hiddenClass);
     }
 
     clickResetPersonalRecordButton() {
@@ -478,12 +512,29 @@ class Fifteen {
         // Make a new game impossible before the new shuffle
         this.isStarted = false;
         this.gameNode.classList.add(this.wonClass);
+
+        // If this is a best moves count or time - set a new personal record
+        let [movesUpgraded, timeUpgraded] = [0, 0];
         if (this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves || this.time < this.personalRecord.time) {
-            this.setPersonalRecord({
-                moves: this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves ? this.movesCount : this.personalRecord.moves,
-                time: this.personalRecord.time === 0 || this.time < this.personalRecord.time ? this.time : this.personalRecord.time
-            }, true);
+            const record = this.personalRecord;
+            if (this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves) {
+                if (this.personalRecord.moves !== 0) {
+                    movesUpgraded = getPercents(record.moves, this.movesCount);
+                }
+                record.moves = this.movesCount;
+            }
+            if (this.personalRecord.time === 0 || this.time < this.personalRecord.time) {
+                if (this.personalRecord.time !== 0) {
+                    timeUpgraded = getPercents(parseTimeString(record.time), parseTimeString(this.time));
+                }
+                record.time = this.time;
+            }
+            this.setPersonalRecord(record, true);
         }
+
+        // Add "congratulations" block
+        this.addCongratulationsBlock(movesUpgraded, timeUpgraded);
+
         // Add "updated" class to "moves count" and "time" blocks
         this.stepsCountNode.classList.add(this.updatedValueClass);
         this.timeNode.classList.add(this.updatedValueClass);
@@ -557,4 +608,24 @@ function formatTime(hours, minutes, seconds, milliseconds) {
 
     const minutesStr = [numberToString(minutes), numberToString(seconds), numberToString(milliseconds)].join(':');
     return hours === 0 ? minutesStr : numberToString(hours) + ':' + minutesStr;
+}
+
+function parseTimeString(timeStr) {
+    const timeParts = timeStr.split(':');
+    let [hours, minutes, seconds, milliseconds] = [0, 0, 0, 0];
+    if (timeParts.length === 4) {
+        hours = Number(timeParts.shift());
+    }
+    minutes = Number(timeParts.shift());
+    seconds = Number(timeParts.shift());
+    milliseconds = Number(timeParts.shift());
+
+    return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds * 10;
+}
+
+function getPercents(num, from) {
+    if (num === 0 || from === 0) {
+        return 100;
+    }
+    return (num / from * 100).toFixed(2);
 }
