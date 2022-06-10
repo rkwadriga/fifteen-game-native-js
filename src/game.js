@@ -367,6 +367,7 @@ class Fifteen {
     }
 
     setPersonalRecord(record, isNew = true) {
+        const oldRecord = this.personalRecord;
         if (typeof record === 'string') {
             record = JSON.parse(record);
         }
@@ -384,8 +385,12 @@ class Fifteen {
         } else {
             if (isNew) {
                 localStorage.setItem(this.prsonalRecordStorageKey, JSON.stringify(this.personalRecord));
-                this.bestMovesCountNode.classList.add(this.updatedValueClass);
-                this.bestTimeNode.classList.add(this.updatedValueClass);
+                if (oldRecord.moves > this.personalRecord.moves) {
+                    this.bestMovesCountNode.classList.add(this.updatedValueClass);
+                }
+                if (oldRecord.time > this.personalRecord.time) {
+                    this.bestTimeNode.classList.add(this.updatedValueClass);
+                }
             }
             this.bestMovesCountNode.innerText = this.personalRecord.moves;
             this.bestTimeNode.innerText = this.personalRecord.time;
