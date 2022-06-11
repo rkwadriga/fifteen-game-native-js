@@ -700,13 +700,10 @@ function formatTime(hours, minutes, seconds, milliseconds) {
 
 function parseTimeString(timeStr) {
     const timeParts = timeStr.split(':');
-    let [hours, minutes, seconds, milliseconds] = [0, 0, 0, 0];
-    if (timeParts.length === 4) {
-        hours = Number(timeParts.shift());
-    }
-    minutes = Number(timeParts.shift());
-    seconds = Number(timeParts.shift());
-    milliseconds = Number(timeParts.shift());
+    const hours = timeParts.length === 4 ? Number(timeParts.shift()) : 0;
+    const minutes = Number(timeParts.shift());
+    const seconds = Number(timeParts.shift());
+    const milliseconds = Number(timeParts.shift());
 
     return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds * 10;
 }
