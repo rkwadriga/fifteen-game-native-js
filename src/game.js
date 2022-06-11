@@ -28,6 +28,7 @@ class Fifteen {
         this.movesCount = 0;
         this.time = 0;
         this.eventListeners = [];
+        this.shiftPressed = false;
         this.isShuffling = false;
         this.isStarted = false;
         this.correctValues = generateMatrix(this.size);
@@ -42,6 +43,7 @@ class Fifteen {
 
         this.clickSquare = this.clickSquare.bind(this);
         this.clickArrow = this.clickArrow.bind(this);
+        this.shiftUp = this.shiftUp.bind(this);
         this.clickShuffleButton = this.clickShuffleButton.bind(this);
         this.clickResetPersonalRecordButton = this.clickResetPersonalRecordButton.bind(this);
 
@@ -174,6 +176,7 @@ class Fifteen {
         this.eventListeners = [
             {name: 'click', callback: this.clickSquare, target: this.gameNode},
             {name: 'keydown', callback: this.clickArrow, target: window},
+            {name: 'keyup', callback: this.shiftUp, target: window},
             {name: 'click', callback: this.clickShuffleButton, target: this.shuffleBtnNode},
             {name: 'click', callback: this.clickResetPersonalRecordButton, target: this.personalRecordResetBtnNode}
         ];
@@ -196,8 +199,13 @@ class Fifteen {
             throw new Error('Invalid game square dataset: items "x" and "y" are required');
         }
 
-        // Move the square
-        this.moveSquare(Number(square.dataset.x), Number(square.dataset.y));
+        // Get clicked square coordinates
+        const [x, y] = [Number(square.dataset.x), Number(square.dataset.y)];
+
+        // If it's not possible to move the square - try to move the group of them
+        if (!this.moveSquare(x, y)) {
+            this.moveSquaresGroup(x, y);
+        }
     }
 
     clickArrow(event) {
@@ -205,33 +213,48 @@ class Fifteen {
         if (this.isShuffling) {
             return;
         }
-
+        // If this is "Shift" key = remember the shift is pressed and return
+        if (event.key.toLowerCase() === 'shift') {
+            this.shiftPressed = true;
+            return;
+        }
+        // Get pressed arrow direction
         const direction = event.key.match(/arrow(left|right|up|down)/i);
         if (direction === null) {
             return;
         }
 
         // Get the blank square item coordinates
-        let [newX, newY] = [this.emptySquare.x, this.emptySquare.y];
+        let [x, y] = [this.emptySquare.x, this.emptySquare.y];
 
         // Calculate the moved square item coordinates and find this item
         switch (direction[1].toLowerCase()) {
             case 'left':
-                newX++;
+                x++;
                 break;
             case 'right':
-                newX--;
+                x--;
                 break;
             case 'up':
-                newY++;
+                y++;
                 break;
             case 'down':
-                newY--;
+                y--;
                 break;
         }
 
-        // Try to move the square
-        this.moveSquare(newX, newY, false);
+        // Try to move the square or row if "Shift" button is pressed
+        if (this.shiftPressed) {
+            this.moveSquaresGroup(x, y);
+        } else {
+            this.moveSquare(x, y, false);
+        }
+    }
+
+    shiftUp(event) {
+        if (event.key.toLowerCase() === 'shift') {
+            this.shiftPressed = false;
+        }
     }
 
     clickShuffleButton() {
@@ -253,8 +276,6 @@ class Fifteen {
         this.timeNode.classList.remove(this.updatedValueClass);
         this.bestMovesCountNode.classList.remove(this.updatedValueClass);
         this.bestTimeNode.classList.remove(this.updatedValueClass);
-        // Refresh the Moves count
-        this.setMovesCount(0);
         // Stop the timer
         this.stopTimer();
         this.setTime(0);
@@ -286,6 +307,8 @@ class Fifteen {
                 if (i === this.complicity - 1) {
                     this.isShuffling = false;
                     this.isStarted = true;
+                    // Refresh the Moves count
+                    this.setMovesCount(0);
                 }
             }, i * 100);
         }
@@ -311,22 +334,95 @@ class Fifteen {
             if (throwNotFoundException) {
                 throw new Error(`Invalid row number: ${x}`);
             } else {
-                return;
+                return false;
             }
         }
         if (this.squares[x][y] === undefined) {
             if (throwNotFoundException) {
                 throw new Error(`Invalid column number: ${y}`);
             } else {
-                return;
+                return false;
             }
         }
 
         // Check is it possible to move the square
         if (Math.abs(this.emptySquare.x - x) + Math.abs(this.emptySquare.y - y) !== 1) {
+            return false;
+        }
+
+        // Swap the square and the empty one
+        this.swap(x, y);
+
+        // If this is shuffling move or move before shuffling - do not calculate the steps and do not check the game finish
+        if (!this.isStarted) {
+            return true;
+        }
+
+        this.incrementMove();
+        return true;
+    }
+
+    moveSquaresGroup(x, y) {
+        const [deltaX, deltaY] = [x - this.emptySquare.x, y - this.emptySquare.y];
+
+        // Check if selected square in the same line as an empty one
+        if (deltaX !== 0 && deltaY !== 0) {
             return;
         }
 
+        let [x1, y1, x2, y2] = [x, y, 0, 0];
+        if (deltaY === 0) {
+            // Move the row
+            if (deltaX < 0) {
+                // Move to the right
+                x1 = this.emptySquare.x - 1;
+                if (deltaX !== -1) {
+                    x2 = x;
+                }
+                for (let i = x1; i >= x2; i--) {
+                    this.swap(i, y);
+                }
+            } else {
+                // Move to the left
+                x2 = this.size - 1;
+                if (deltaX !== 1) {
+                    x1 = this.emptySquare.x + 1;
+                    x2 = x;
+                }
+                for (let i = x1; i <= x2; i++) {
+                    this.swap(i, y);
+                }
+            }
+        } else {
+            // Move the column
+            if (deltaY < 0) {
+                // Move to the down
+                y1 = this.emptySquare.y - 1;
+                if (deltaY !== -1) {
+                    y2 = y;
+                }
+                for (let i = y1; i >= y2; i--) {
+                    this.swap(x, i);
+                }
+            } else {
+                // Move to the top
+                y2 = this.size - 1;
+                if (deltaY !== 1) {
+                    y1 = this.emptySquare.y + 1;
+                    y2 = y;
+                }
+                for (let i = y1; i <= y2; i++) {
+                    this.swap(x, i);
+                }
+            }
+        }
+
+        if (this.isStarted) {
+            this.incrementMove();
+        }
+    }
+
+    swap(x, y) {
         // Remember the moved square and the empty square coordinates
         const movedSquare = this.squares[x][y];
         const [newX, newY] = [this.emptySquare.x, this.emptySquare.y];
@@ -349,12 +445,9 @@ class Fifteen {
 
         // Increment the control sum
         this.incrementControlSum(newX, newY);
+    }
 
-        // If this is shuffling move or move before shuffling - do not calculate the steps and do not check the game finish
-        if (!this.isStarted) {
-            return;
-        }
-
+    incrementMove() {
         // Start the timer if ti's not
         if (this.timer === null) {
             this.startTimer();
