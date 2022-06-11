@@ -278,7 +278,6 @@ class Fifteen {
         this.bestTimeNode.classList.remove(this.updatedValueClass);
         // Stop the timer
         this.stopTimer();
-        this.setTime(0);
 
         // Hide the congratulations block
         this.congratulationsNode.classList.add(this.hiddenClass);
@@ -307,8 +306,9 @@ class Fifteen {
                 if (i === this.complicity - 1) {
                     this.isShuffling = false;
                     this.isStarted = true;
-                    // Refresh the Moves count
+                    // Refresh the timer and the moves count
                     this.setMovesCount(0);
+                    this.setTime(0);
                 }
             }, i * 100);
         }
