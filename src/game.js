@@ -488,7 +488,7 @@ class Fifteen {
     }
 
     setPersonalRecord(record, isNew = true) {
-        const oldRecord = this.personalRecord;
+        const oldRecord = {...this.personalRecord};
         if (typeof record === 'string') {
             record = JSON.parse(record);
         }
