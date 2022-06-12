@@ -603,7 +603,7 @@ class Fifteen {
         // If this is a best moves count or time - set a new personal record
         let [movesUpgraded, timeUpgraded] = [0, 0];
         if (this.personalRecord.moves === 0 || this.movesCount < this.personalRecord.moves || this.time < this.personalRecord.time) {
-            const record = this.personalRecord;
+            const record = {...this.personalRecord};
             if (record.moves === 0 || this.movesCount < record.moves) {
                 if (record.moves !== 0) {
                     movesUpgraded = getPercents(record.moves - this.movesCount, record.moves);
@@ -617,7 +617,7 @@ class Fifteen {
                 }
                 record.time = this.time;
             }
-            this.setPersonalRecord(record, true);
+            this.setPersonalRecord(record);
         }
 
         // Add "congratulations" block
